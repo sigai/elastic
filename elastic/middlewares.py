@@ -106,9 +106,10 @@ class ElasticDownloaderMiddleware(object):
         # - return a Request object: stops process_exception() chain
         if isinstance(exception, (ConnectionRefusedError, )):
             spider.logger.debug(f"[-] Exception: {type(exception)}")
-            sleep(60*2)
-            return request
-        return None
+            spider.logger.error(request.url)
+            raise CloseSpider()
+        else:
+            return None
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)

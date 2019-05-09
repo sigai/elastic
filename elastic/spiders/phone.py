@@ -3,25 +3,26 @@ import json
 import base64
 
 import scrapy
+from scrapy.exceptions import CloseSpider
 from scrapy.utils.project import get_project_settings
 from redis import Redis, ConnectionPool
 
 from elastic.items import ElasticItem
 
 
-class SearchSpider(scrapy.Spider):
-    name = 'search'
-    allowed_domains = ['47.92.116.107']
-    base_url = "http://47.92.116.107:9200/baoji_company/company/"
-    total = 5095653
+class PhoneSpider(scrapy.Spider):
+    name = 'phone'
+    allowed_domains = ['203.195.139.97']
+    start_url = "http://203.195.139.97:9200/M20190128175232/_search?scroll=1m&_source=phoneNumbers,smsContent&size=1000"
+    base_url = "http://203.195.139.97:9200/_search/scroll?scroll=1m&scroll_id="
     custom_settings = {
         # "LOG_LEVEL": "DEBUG",
-        "DOWNLOADER_MIDDLEWARES": {
-            # "elastic.middlewares.ProxyMiddleware": 543,
-            "elastic.middlewares.ElasticDownloaderMiddleware": 543,
-        },
+        # "DOWNLOADER_MIDDLEWARES": {
+        #     # "elastic.middlewares.ProxyMiddleware": 543,
+        #     "elastic.middlewares.ElasticDownloaderMiddleware": 543,
+        # },
         "ITEM_PIPELINES": {
-            'elastic.pipelines.ElasticPipeline': 300,
+            'elastic.pipelines.PhonePipeline': 300,
         }
     }
     settings = get_project_settings()
@@ -35,16 +36,21 @@ class SearchSpider(scrapy.Spider):
     r = Redis(connection_pool=pool)
 
     def start_requests(self):
-        for i in range(self.total, self.total+1000000):
-            if self.r.sismember("elastic:crawled", i):
-                continue
-            url = self.base_url + str(i)
-            yield scrapy.Request(url, dont_filter=True)
+        yield scrapy.Request(self.start_url, dont_filter=True)
 
     def parse(self, response):
         try:
             res = json.loads(response.body_as_unicode())
         except Exception:
             return
-        yield ElasticItem(hit=res)
+
+        scroll_id = res["_scroll_id"]
+        yield scrapy.Request(self.base_url+scroll_id, dont_filter=True)
+
+        hits = res["hits"]["hits"]
+        if not hits:
+            raise CloseSpider()
+
+        for hit in hits:
+            yield ElasticItem(hit=hit)
 
