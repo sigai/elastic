@@ -11,9 +11,3 @@ class ElasticPipeline(object):
         hit = item["hit"]
         spider.r.sadd(f"elastic:{spider.index}", json.dumps(hit["_source"], ensure_ascii=False))
         return item
-
-class PhonePipeline(object):
-    def process_item(self, item, spider):
-        hit = item["hit"]
-        spider.r.sadd("elastic:sms", json.dumps(hit["_source"], ensure_ascii=False))
-        return item
