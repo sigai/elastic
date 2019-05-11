@@ -9,8 +9,7 @@ import json
 class ElasticPipeline(object):
     def process_item(self, item, spider):
         hit = item["hit"]
-        spider.r.sadd("elastic:company", json.dumps(hit, ensure_ascii=False))
-        spider.r.sadd("elastic:crawled", hit["_id"])
+        spider.r.sadd(f"elastic:{spider.index}", json.dumps(hit["_source"], ensure_ascii=False))
         return item
 
 class PhonePipeline(object):
