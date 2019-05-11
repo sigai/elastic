@@ -12,9 +12,10 @@ from elastic.items import ElasticItem
 
 class PhoneSpider(scrapy.Spider):
     name = 'phone'
-    allowed_domains = ['203.195.139.97']
-    start_url = "http://203.195.139.97:9200/M20190128175232/_search?scroll=1m&_source=phoneNumbers,smsContent&size=1000"
-    base_url = "http://203.195.139.97:9200/_search/scroll?scroll=1m&scroll_id="
+    host = "203.195.139.97"
+    allowed_domains = [host]
+    start_url = "http://{host}:9200/{indice}/_search?scroll=1m&_source=phoneNumbers,smsContent&size=1000"
+    base_url = f"http://{host}:9200/_search/scroll?scroll=1m&scroll_id="
     custom_settings = {
         # "LOG_LEVEL": "DEBUG",
         # "DOWNLOADER_MIDDLEWARES": {
@@ -36,7 +37,14 @@ class PhoneSpider(scrapy.Spider):
     r = Redis(connection_pool=pool)
 
     def start_requests(self):
-        yield scrapy.Request(self.start_url, dont_filter=True)
+        indice = f"M20190128175232"
+        yield scrapy.Request(
+            self.start_url.format(
+                indice=indice, 
+                host=self.host
+                ), 
+            dont_filter=True
+            )
 
     def parse(self, response):
         try:

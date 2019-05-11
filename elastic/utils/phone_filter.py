@@ -10,7 +10,7 @@ r = Redis()
 def split():
     pattern = re.compile(r"【(\w+)】")
     for _ in range(1000):
-        members = r.spop("elastic:sms", count=1000)
+        members = r.spop("elastic:sms", count=5000)
         if not members:
             break
         for each in members:
