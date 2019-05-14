@@ -12,11 +12,11 @@ from elastic.items import ElasticItem
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
-    host = "47.97.114.195"
-    index = "zgxl_card_account_summary"
-    source = ",".join(["real_name", "mobile"])
+    host = "47.99.214.119"
+    index = "order"
+    source = ",".join(["receiver", "delivery_address", "ship_mobile", "ship_zip"])
     allowed_domains = [host]
-    start_url = f"http://{host}:9200/{index}/_search?scroll=1m&_source={source}&size=1000"
+    start_url = f"http://{host}:9200/{index}2/_search?scroll=1m&_source={source}&size=1000"
     base_url = f"http://{host}:9200/_search/scroll?scroll=1m&scroll_id="
     custom_settings = {
         # "LOG_LEVEL": "DEBUG",

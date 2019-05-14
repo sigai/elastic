@@ -12,10 +12,13 @@ def dump(name):
         if not members:
             break
         else:
-            with open(f"../docs/{filename}.dat", mode="a", encoding="utf-8") as f:
-                for each in members:
-                    item = json.loads(each)
-                    f.write(f"{json.dumps(item, ensure_ascii=False)}\n")
+            try:
+                with open(f"../docs/{filename}.dat", mode="a", encoding="utf-8") as f:
+                    for each in members:
+                        item = json.loads(each)
+                        f.write(f"{json.dumps(item, ensure_ascii=False)}\n")
+            except Exception:
+                r.sadd(name, *members)
 
 
 if __name__ == '__main__':
