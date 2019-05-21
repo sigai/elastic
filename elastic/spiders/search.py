@@ -15,6 +15,7 @@ class SearchSpider(scrapy.Spider):
     host = "47.96.83.228"
     index = "chinaindustria_company"
     source = ",".join([""])
+    n = 2
     allowed_domains = [host]
     start_url = f"http://{host}:9200/{index}/_search?scroll=1m&_source={source}&size=1000"
     base_url = f"http://{host}:9200/_search/scroll?scroll=1m&scroll_id="
@@ -39,7 +40,13 @@ class SearchSpider(scrapy.Spider):
     r = Redis(connection_pool=pool)
 
     def start_requests(self):
-        yield scrapy.Request(self.start_url, dont_filter=True)
+        
+        for i in range(self.n):
+            body = {"slice": {
+                "id":i,
+                "max":self.n
+            }}
+            yield scrapy.Request(self.start_url, body=json.dumps(body), dont_filter=True)
 
     def parse(self, response):
         try:
