@@ -8,9 +8,12 @@ r = Redis(decode_responses=True)
 def dump(name):
     filename = name[8:]
     while True:
-        members = r.spop(name, count=100)
+        members = r.spop(name, count=10000)
         if not members:
-            break
+            # return
+            print("[*] watting for 10 mins to dump...")
+            sleep(60*10)
+            continue
         else:
             try:
                 with open(f"../docs/{filename}.dat", mode="a", encoding="utf-8") as f:
