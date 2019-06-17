@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import base64
+from datetime import date, timedelta
 
 import scrapy
 from scrapy.utils.project import get_project_settings
@@ -12,13 +13,12 @@ from elastic.items import ElasticItem
 
 class SearchSpider(scrapy.Spider):
     name = 'search'
-    host = "47.96.83.228"
-    index = "chinaindustria_company"
-    source = ",".join([""])
-    n = 2
+    host = ""
+    index = ""
+    source = ",".join([])
     allowed_domains = [host]
-    start_url = f"http://{host}:9200/{index}/_search?scroll=1m&_source={source}&size=1000"
-    base_url = f"http://{host}:9200/_search/scroll?scroll=1m&scroll_id="
+    start_url = f"http://{host}:9200/{index}/_search?scroll=30m&_source={source}&size=1000"
+    base_url = f"http://{host}:9200/_search/scroll?scroll=30m&scroll_id="
     custom_settings = {
         # "LOG_LEVEL": "DEBUG",
         # "DOWNLOADER_MIDDLEWARES": {
@@ -40,13 +40,7 @@ class SearchSpider(scrapy.Spider):
     r = Redis(connection_pool=pool)
 
     def start_requests(self):
-        
-        for i in range(self.n):
-            body = {"slice": {
-                "id":i,
-                "max":self.n
-            }}
-            yield scrapy.Request(self.start_url, body=json.dumps(body), dont_filter=True)
+        yield scrapy.Request(self.start_url, dont_filter=True)
 
     def parse(self, response):
         try:
@@ -54,12 +48,10 @@ class SearchSpider(scrapy.Spider):
         except Exception:
             return
 
-        scroll_id = res["_scroll_id"]
-        yield scrapy.Request(self.base_url+scroll_id, dont_filter=True)
-
         hits = res["hits"]["hits"]
-        if not hits:
-            raise CloseSpider()
-
+        scroll_id = res["_scroll_id"]
+      
         for hit in hits:
             yield ElasticItem(hit=hit)
+        if len(hits) > 0:
+            yield scrapy.Request(self.base_url+scroll_id, dont_filter=True)
